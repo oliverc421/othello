@@ -87,19 +87,24 @@ def simple_game_loop():
 	print("Welcome to Othello")
 	board = components.initialise_board()
 	counter = 60
-	if counter % 2 == 0:	# if counter is even
-		colour, opponent = 'Dark ', 'Light'	# dark goes first
-	else:
-		colour, opponent = 'Light', 'Dark '
-	if move_is_available(colour, board) == False:	# check that this colour can move
-		colour, opponent = opponent, colour	# if no move available then swap colours
-	if move_is_available(colour, board) == False:	# check the other colour can move
-		game_over(board)			# if neither can move, game over
-	flag = False
-	while flag = False:
-		coords = cli_coords_input()
-		flag = components.legal_move(colour, coords, board)
-	swap_colours(colour, coords, board)
-	counter -= 1
-	if counter == 0:
-		game_over(board)
+	while True:
+		components.print_board()
+		if counter % 2 == 0:	# if counter is even
+			colour, opponent = 'Dark ', 'Light'	# dark goes first
+		else:
+			colour, opponent = 'Light', 'Dark '
+		if move_is_available(colour, board) == False:	# check that this colour can move
+			colour, opponent = opponent, colour	# if no move available then swap colours
+		if move_is_available(colour, board) == False:	# check the other colour can move
+			game_over(board)			# if neither can move, game over
+		flag = False
+		while flag = False:
+			coords = cli_coords_input()
+			flag = components.legal_move(colour, coords, board)
+		swap_colours(colour, coords, board)
+		counter -= 1
+		if counter == 0:
+			game_over(board)
+
+if __name__ -- __main__:
+	simple_game_loop()

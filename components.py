@@ -28,7 +28,10 @@ def legal_move(colour: str, coordinate: tuple, board: list) -> bool:
 				if board[(x+i)][(y+j)] == opponent:	# i want to capture this direction to check if there is 														a same colour counter further down
 					for k in range (1,8):
 						try:
-							if board[(x+k*i)][(y+k*j)] != opponent: # timesing k by i and j means it goes in the 														specfic direction it needs to, if the target counter is 													to the left (coordinate(0) - 1) then continuing to minus 														is what i want to do
+							if board[(x+k*i)][(y+k*j)] != opponent: # timesing k by i and j means it goes in the 
+												# specfic direction it needs to, if the target
+												# counter is to the left (coordinate(0) - 1) then 
+												# continuing to minus is what i want to do
 								if board[(x+k*i)][(y+k*j)] == 'None ':	# if we hit a blank square, exit the nested loop and check the other squares
 									break
 								else:
