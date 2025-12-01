@@ -28,7 +28,7 @@ def count_counters(board: list) -> tuple:
 		for j in range(8):
 			if board[i][j] == 'Light':
 				light_counters += 1
-			elif board[i][j] == 'Dark':
+			elif board[i][j] == 'Dark ':
 				dark_counters += 1
 			else:
 				pass
