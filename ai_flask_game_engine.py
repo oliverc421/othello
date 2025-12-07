@@ -3,6 +3,15 @@ Othello/Reversi
 
 This is a python module which uses flask to provide a backend for a web-based 
 Othello/Reversi game. It implements an AI opponent for the light player.
+
+Global State:
+- board: 2D list representing the current game state
+- counter: Integer tracking remaining moves (starts at 60 for 64 squares minus 4 starting pieces)
+
+Dependencies:
+- Flask: Web framework for API endpoints
+- components: Custom module with core Othello game logic
+
 """
 
 from copy import deepcopy
@@ -20,6 +29,16 @@ def move_is_available(colour: str, board: list) -> bool:
     Check if a player has at least one legal move available on the current board.
     This function iterates through all 64 squares on the board, using the legal_move
     function to test each position. It returns as soon as any legal move is found,
+    This function is called at the beginning of each turn to determine
+    if the current player must pass or if the game should end.
+
+    Args:
+        colour: The player's colour as a string ('Light' or 'Dark ').
+        board: The current game board as a 2D list of strings.
+    
+    Returns:
+        True if at least one legal move exists for the given colour,
+        False if no legal moves are available.
     """
 
     for i in range(8):
@@ -35,6 +54,13 @@ def count_counters(board: list) -> tuple:
     Count the number of pieces each player has on the board.
     This function is used for determining the winner when the game ends,
     and for deciding which move the AI should make.
+
+    Args:
+        board: The game board as a 2D list of strings ('Light', 'Dark ', or 'None ').
+
+    Returns:
+        A tuple (light_counters, dark_counters) where each is an integer
+        representing the number of pieces of that colour on the board.
     """
 
     light_counters = 0
@@ -54,6 +80,19 @@ def game_over(board: list):
     """
     This function outputs the winner based on how many counters
     of each colour are on the board when there are no more moves available
+
+    Args:
+        board: The final game board state as a 2D list.
+
+    Returns:
+        A formatted string announcing the game result, including:
+        - "Game Over: Draw" if both players have equal pieces
+        - "Game Over: Light wins" if Light has more pieces
+        - "Game Over: Dark wins" if Dark has more pieces
+
+    Note:
+        This function only determines the winner based on piece count.
+        The actual game over condition checking happens elsewhere.
     """
 
     light_counters, dark_counters = count_counters(board)
@@ -72,6 +111,27 @@ def swap_colours(colour: str, coordinate: tuple, board: list) -> list:
     It places a piece of the given colour at the specified coordinate, then
     identifies and flips all opponent pieces that are captured in straight lines
     (horizontal, vertical, and diagonal).
+
+    Args:
+        colour: The colour of the player making the move ('Light' or 'Dark ').
+        coordinate: A tuple (x, y) representing the coordinates to place the piece.
+        board: The current game board to modify.
+
+    Returns:
+        The updated game board with the move applied and pieces flipped.
+
+    Raises:
+        No explicit exceptions, but assumes valid input coordinates.
+
+    Process:
+        1. Check all 8 directions around the placed piece
+        2. For each direction, store the capture lines
+        3. Flip all opponent pieces in the capture lines
+        4. Update the board in place
+
+    Note:
+        This function modifies the board in place. For AI simulations,
+        pass a deep copy of the board to avoid altering the game state. 
     """
 
     directions_to_go_in = []
@@ -95,6 +155,7 @@ def swap_colours(colour: str, coordinate: tuple, board: list) -> list:
                             # check for negative indices
                             if (y + k * i) < 0 or (x + k * j) < 0:
                                 raise IndexError("Negative index")
+                            # times k by i and j to go in the direction of the opponent counters
                             if board[y + k * i][x + k * j] != opponent:
                                 if board[y + k * i][x + k * j] == 'None ':
                                     break
@@ -133,6 +194,13 @@ def ai(board: list) -> tuple:
     The AI evaluates all legal moves available to Light and chooses the one that
     results in the maximum number of Light pieces on the board after the move.
     This is a simple greedy strategy that doesn't look ahead multiple moves.
+    Args:
+
+        board: The current game board as a 2D list.
+
+    Returns:
+        A tuple (x, y) representing the coordinates of the best move found,
+        or (-1, -1) if no legal moves are available.
     """
 
     best_move = (-1, -1)
@@ -159,6 +227,20 @@ def initialise_flask():
     This route handler serves the main game interface and resets the game
     to its initial state. It's called when the user first visits the site
     or refreshes the page.
+
+    Route:
+    GET /
+
+    Returns:
+        A rendered HTML template with the initial game board.
+    Side Effects:
+
+        - Resets the global 'board' to the initial Othello setup
+        - Resets the global 'counter' to 60 (remaining moves)
+        - Serves the main game interface to the client
+    Note:
+
+        This function handles both initial game setup and game restart.
     """
 
     global board, counter
@@ -176,16 +258,33 @@ def get_move():
     This is the main game loop handler. It validates the player's move,
     applies it to the board, then triggers the AI to make its move.
     Handles game over conditions and turn management.
+
+    Route:
+        GET /move
+    
+    Query Parameters:
+        x: Integer x-coordinate (0-7) of the player's move
+        y: Integer y-coordinate (0-7) of the player's move
+
+    Returns:
+        JSON response with one of:
+        - success: Move processed successfully with updated board
+        - fail: Invalid move with error message
+        - game_over: Game has ended with final result
+
+    Process Flow:
+        1. Validate player's move coordinates
+        2. Check if move is legal for human player
+        3. Apply move and flip pieces
+        4. Check game over conditions
+        5. Trigger AI move
+        6. Update move counter
+        7. Return updated game state
     """
 
     global board, counter
     print(counter)
     colour = 'Dark '    # dark goes first
-
-    # if no move available for either colour, game over
-    if move_is_available('Dark ', board) is False and move_is_available('Light', board) is False:
-        result = game_over(board)
-        print(result)
 
     # get player input
     try:
@@ -201,19 +300,41 @@ def get_move():
         return jsonify({'status': 'fail', 'message': message})
     # if move is legal, update the board
     board = swap_colours(colour, coords, board)
-
-    # we check again that the move is available because if the board is full then the
-    # /move route cannot be called again, so there is no way to check the board is full
-    # after the final counter has been placed, unless we do it at the end of this function
-    if move_is_available('Dark ', board) is False and move_is_available('Light', board) is False:
-        result = game_over(board)
-        print(result)
-
+    counter -= 1
+    if move_is_available('Light', board) is False:
+        if move_is_available('Dark ', board) is False:
+            result = game_over(board)
+            print(result)
+        else:
+            return jsonify({
+            'status': 'success',
+            'board': board,
+            'player': 'Dark '
+            })
     # call the ai function to get the coords for the ai move
     # then update the board
     board = swap_colours('Light', ai(board), board)
+    counter -= 1
 
-    counter -= 2
+    if move_is_available('Light', board) is False:
+        # if human can't move, prompt ai to move again
+        # if ai also can't move, game over
+        flag = False
+        while flag is False:
+            if move_is_available('Dark ', board) is False:
+                if move_is_available('Light', board) is False:
+                    result = game_over(board)
+                    print(result)
+                    return jsonify({
+                    'status': 'success',
+                    'board': board,
+                    'player': 'None '
+                    })
+                else:
+                    board = swap_colours('Light', ai(board), board)
+                    counter -= 1
+            else:
+                flag = True
 
     # if succesful
     return jsonify({

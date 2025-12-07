@@ -53,37 +53,50 @@ def swap_colours(colour: str, coordinate: tuple, board: list) -> list:
         opponent = 'Dark '
     else:
         opponent = 'Light'
-    for i in range (-1, 2):         # checking all the squares around the selected square
-        for j in range (-1,2):
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            if i == 0 and j == 0:
+                continue
             try:
-                if board[(y+i)][(x+j)] == opponent:     # i want to capture this direction to check if there is
-                                         # a same colour counter further down
-                    for k in range (1,8):
+                # check for negative indices
+                if (y + i) < 0 or (x + j) < 0:
+                    raise IndexError("Negative index")
+                if board[y + i][x + j] == opponent:
+                    for k in range(1, 8):
                         try:
-                            if board[(y+k*i)][(x+k*j)] != opponent: # timesing k by i and j means it goes in the
-                                                # specfic direction it needs to, if the target
-                                                # counter is to the left (coordinate[0] - 1) then
-                                                # continuing to minus is what i want to do
-                                if board[(y+k*i)][(x+k*j)] == 'None ':  # if we hit a blank square, exit the nested loop and check the other squares
+                            # check for negative indices
+                            if (y + k * i) < 0 or (x + k * j) < 0:
+                                raise IndexError("Negative index")
+                            if board[y + k * i][x + k * j] != opponent:
+                                if board[y + k * i][x + k * j] == 'None ':
                                     break
-                                else:
-                                    directions_to_go_in.append((i, j)) # we store the direction of the ally colour
-                        except:
+                                directions_to_go_in.append((i, j))
+                                break
+                        except IndexError:
                             break
-            except:
-                pass
+            except IndexError:
+                continue
+
     for direction in directions_to_go_in:
         i, j = direction
-        for squares in range (1,8):
-            if board[(y+squares*i)][(x+squares*j)] == opponent:
-                squares_to_change.append((x+squares*j, y+squares*i))    # store the coordinates of all the squares between the ally counters
+        for squares in range(1, 8):
+            new_y = y + squares * i
+            new_x = x + squares * j
+
+            # check bounds for squares_to_change too
+            if 0 <= new_y < len(board) and 0 <= new_x < len(board[0]):
+                if board[new_y][new_x] == opponent:
+                    squares_to_change.append((new_x, new_y))
+                else:
+                    break
             else:
                 break
-    for squares in squares_to_change:
-        board[squares[1]][squares[0]] = colour        # change all the opponent counters whose location we stored to be the opposing colour
-    print("okay we changed it")
+
+    for square in squares_to_change:
+        board[square[1]][square[0]] = colour
+
     return board
-                
+
 
 def simple_game_loop():
     print("Welcome to Othello")
