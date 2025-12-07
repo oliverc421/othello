@@ -1,5 +1,11 @@
 # Othello/Reversi  
 
+# Table of Contents
+1. [Overview](#overview)
+2. [Example2](#example2)
+3. [Third Example](#third-example)
+4. [Fourth Example](#fourth-examplehttpwwwfourthexamplecom)
+
 ## Overview
 This project is a python implementation of the game Othello/Reversi. It is a server backend for a html template which takes input from the user as coordinates on
 the board.  The human player has control over the dark counters.These coordinates are then checked and validated. The server checks if the game is over, and if 
