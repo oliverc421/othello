@@ -2,9 +2,9 @@
 
 # Table of Contents
 1. [Overview](#overview)
-2. [Example2](#example2)
-3. [Third Example](#third-example)
-4. [Fourth Example](#fourth-examplehttpwwwfourthexamplecom)
+2. [How the game works](#how the game works)
+3. [Third Example](#initialising flask)
+4. [User input](#user input)
 
 ## Overview
 This project is a python implementation of the game Othello/Reversi. It is a server backend for a html template which takes input from the user as coordinates on
