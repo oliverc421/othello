@@ -5,6 +5,8 @@ This project is a python implementation of the game Othello/Reversi. It is a ser
 the board.  The human player has control over the dark counters.These coordinates are then checked and validated. The server checks if the game is over, and if 
 not, generates coordinates from an artifical intelligence, which decides the move for light.
 
+For information on how to play, see manual.pdf
+
 ## How the game works
 
 ### Initialising flask
